@@ -334,6 +334,7 @@ const HOOK = {
   gerar:       'https://hook.us2.make.com/qm7ypk6x6vvqhlis8xhvowzz8uoyyzsn',
   enviar:      'https://hook.us2.make.com/4mi4l4e70f1piif75myoes7304rbti71'
 };
+const MAX_ASSIN = 8;           // quadros de assinatura no modelo do Word
 const SEGMENTO_MS = 5 * 60 * 1000;   // cada parte do áudio tem até 5 min (fica bem abaixo dos limites)
 const SALVAR_PARCIAL_MS = 15000;      // a cada 15 s o trecho em andamento é salvo no aparelho
 const RESPONSAVEIS = [
@@ -738,7 +739,8 @@ async function abrirRevisao(id) {
   $('rPart').value = m.participantes || '';
   $('rNasc').value = at.rev?.nasc || '';
   $('encList').innerHTML = ''; (a.encaminhamentos.length ? a.encaminhamentos : []).forEach(addEnc);
-  at.assin = at.assin || [{ nome: primeiroResp(m.responsavel), img: '' }, { nome: '', img: '' }, { nome: '', img: '' }, { nome: '', img: '' }];
+  at.assin = at.assin || [{ nome: primeiroResp(m.responsavel), img: '' }];
+  while (at.assin.length < MAX_ASSIN) at.assin.push({ nome: '', img: '' });
   renderSigs();
   $('fam').checked = !!at.rev?.fam; $('famEmail').value = at.rev?.email || ''; $('famEmail2').value = at.rev?.email || '';
   famToggle(); $('revErr').classList.add('hidden');
@@ -871,7 +873,9 @@ $('btnEnviar').onclick = async () => {
     enviar_familia: !!email, email_familia: email,
     duracao_min: Math.max(1, Math.round((REV.duracaoMs || 0) / 60000))
   };
-  REV.assin.forEach((s, i) => { dados[`assin${i + 1}_nome`] = s.img ? s.nome : ''; dados[`assin${i + 1}_img`] = s.img || PNG_VAZIO; });
+  // assinaturas preenchidas primeiro; a linha de assinatura vai junto com o nome (quadros vazios ficam invisíveis)
+  const assinadas = REV.assin.filter(s => s.img);
+  for (let i = 0; i < MAX_ASSIN; i++) { const s = assinadas[i]; dados[`assin${i + 1}_nome`] = s ? '______________________________\n' + s.nome : ''; dados[`assin${i + 1}_img`] = s ? s.img : PNG_VAZIO; }
   const b = $('btnEnviar'); b.disabled = true; b.textContent = 'Enviando…';
   try {
     const fd = new URLSearchParams({ pin: sessao.pin, estudante: m.estudante, data: dados.data, dados: b64utf8(JSON.stringify(dados)) });
