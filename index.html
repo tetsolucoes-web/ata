@@ -1,0 +1,899 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#17233A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Ata">
+<meta name="robots" content="noindex, nofollow">
+<title>Ata de Atendimento</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#17233A;--ground:#F5F6F8;--teal:#2E6E6B;--tint:#E8F1F0;--muted:#5A6475;--line:#E2E5EA;--red:#B42318;--amber:#8A5A00;--ambertint:#FFF6E5}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--ground);color:var(--navy);font-family:Inter,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+body{overscroll-behavior-y:none}
+h1,h2,h3{font-family:'Plus Jakarta Sans',Inter,sans-serif;margin:0;letter-spacing:-.2px}
+.app{max-width:520px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.screen{display:none;flex-direction:column;flex:1;min-height:100vh;min-height:100dvh}
+.screen.on{display:flex}
+header.top{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 6px}
+header.top img{height:20px;display:block}
+header.top .ttl{font-size:13px;font-weight:500;color:var(--muted)}
+.back{background:none;border:0;padding:6px 0;font:500 15px Inter,sans-serif;color:var(--navy);display:flex;align-items:center;gap:6px;cursor:pointer}
+main{flex:1;padding:12px 20px 24px;display:flex;flex-direction:column;gap:16px}
+.footer{position:sticky;bottom:0;background:linear-gradient(to top,var(--ground) 75%,rgba(245,246,248,0));padding:14px 20px calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px}
+.btn{appearance:none;border:0;border-radius:12px;min-height:52px;padding:0 18px;font:600 16px Inter,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
+.btn.pri{background:var(--navy);color:#fff}
+.btn.pri:disabled{background:#AEB4BE;cursor:not-allowed}
+.btn.sec{background:#fff;color:var(--navy);border:1px solid var(--line)}
+.btn.teal{background:var(--teal);color:#fff}
+.btn.ghost{background:none;color:var(--muted);min-height:44px;font-weight:500}
+.btn.sm{min-height:40px;font-size:14px;width:auto;border-radius:10px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px}
+.lbl{font-size:13px;font-weight:600;color:var(--muted);margin:0 0 6px;display:block}
+.hint{font-size:13px;color:var(--muted);line-height:19px;margin:0}
+input[type=text],input[type=email],input[type=date],select,textarea{width:100%;font:400 16px Inter,sans-serif;color:var(--navy);background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 12px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(46,110,107,.15)}
+textarea{resize:vertical;line-height:22px;min-height:110px}
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+.check{display:flex;gap:12px;align-items:flex-start;font-size:14px;line-height:20px;cursor:pointer}
+.check input{width:22px;height:22px;margin:0;flex:none;accent-color:var(--teal)}
+.seg{display:flex;background:#fff;border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:none;border-radius:8px;min-height:40px;font:500 14px Inter,sans-serif;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--navy);color:#fff}
+.seg button:disabled{opacity:.35}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 16px;border-radius:12px;font-size:14px;max-width:90vw;z-index:50;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
+.err{background:#FEF3F2;color:var(--red);border:1px solid #FECDCA;border-radius:10px;padding:10px 12px;font-size:14px;line-height:20px}
+.pill{display:inline-flex;align-items:center;gap:6px;background:var(--tint);color:var(--teal);border-radius:999px;padding:6px 10px;font-size:12px;font-weight:600}
+
+/* PIN */
+.pinwrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:20px}
+.dots{display:flex;gap:14px}
+.dots span{width:14px;height:14px;border-radius:7px;border:1.5px solid var(--navy);transition:background .15s}
+.dots span.f{background:var(--navy)}
+.dots.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.pad{display:grid;grid-template-columns:repeat(3,76px);gap:14px 26px}
+.pad button{width:76px;height:76px;border-radius:38px;border:0;background:#fff;box-shadow:0 1px 2px rgba(23,35,58,.08);font:500 26px Inter,sans-serif;color:var(--navy);cursor:pointer}
+.pad button:active{background:var(--tint)}
+.pad button.x{background:none;box-shadow:none;font-size:15px;color:var(--muted)}
+
+/* Início */
+.greet h1{font-size:26px;line-height:32px}
+.greet p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.trocar{background:none;border:0;color:var(--teal);font:600 14px Inter,sans-serif;padding:0;cursor:pointer}
+.hero{background:var(--navy);color:#fff;border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.hero p{margin:0;color:#C9D1DD;font-size:14px;line-height:20px}
+.hero .btn{background:#fff;color:var(--navy)}
+.sect{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin:6px 0 -4px}
+.item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.item .t{flex:1;min-width:0}
+.item .t b{display:block;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .t span{font-size:13px;color:var(--muted)}
+.pend{background:var(--ambertint);border:1px solid #F5D9A6}
+.pend .item{border-color:#F0DDB8}
+.foot-note{display:flex;gap:8px;align-items:center;justify-content:center;color:var(--muted);font-size:12px;padding:8px 0 4px}
+
+/* busca */
+.sug{background:#fff;border:1px solid var(--line);border-radius:10px;margin-top:6px;max-height:260px;overflow:auto}
+.sug button{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:12px;font:400 15px Inter,sans-serif;color:var(--navy);cursor:pointer}
+.sug button:last-child{border-bottom:0}
+.sug button.add{color:var(--teal);font-weight:600}
+.chosen{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--tint);border-radius:10px;padding:12px}
+.chosen b{font-weight:600}
+.chosen button{background:none;border:0;color:var(--teal);font:600 14px Inter,sans-serif;cursor:pointer}
+
+/* gravação */
+.rec{background:#F1F5F4}
+.circle{width:232px;height:232px;position:relative;display:flex;align-items:center;justify-content:center;margin:20px auto 0}
+.circle i{position:absolute;border-radius:50%}
+.c1{width:232px;height:232px;background:#DCEAE8;animation:respira 5s ease-in-out infinite;animation-delay:1.2s}
+.c2{width:176px;height:176px;background:#C7DEDB;animation:respira 5s ease-in-out infinite}
+.c3{width:120px;height:120px;background:#fff;box-shadow:0 6px 24px rgba(46,110,107,.18);display:flex;align-items:center;justify-content:center}
+.paused .c1,.paused .c2{animation-play-state:paused;opacity:.45}
+@keyframes respira{0%,100%{transform:scale(1);opacity:.55}50%{transform:scale(1.08);opacity:.9}}
+@media (prefers-reduced-motion:reduce){.c1,.c2{animation:none}}
+.timer{font:600 40px 'Plus Jakarta Sans',Inter,sans-serif;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:1px}
+.status{display:flex;align-items:center;gap:8px;justify-content:center;font-size:14px;color:var(--teal);font-weight:500}
+.status .d{width:8px;height:8px;border-radius:4px;background:var(--teal)}
+
+/* processando */
+.steps{display:flex;flex-direction:column;gap:14px}
+.step{display:flex;gap:12px;align-items:center;font-size:15px;color:var(--muted)}
+.step .ic{width:26px;height:26px;border-radius:13px;border:2px solid var(--line);flex:none;display:flex;align-items:center;justify-content:center}
+.step.on{color:var(--navy);font-weight:500}
+.step.on .ic{border-color:var(--teal);border-top-color:transparent;animation:spin 1s linear infinite}
+.step.ok{color:var(--navy)}
+.step.ok .ic{background:var(--teal);border-color:var(--teal)}
+.step.ok .ic::after{content:'';width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translate(1px,-1px)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* revisão */
+.alert{background:var(--ambertint);border:1px solid #F5D9A6;color:var(--amber);border-radius:10px;padding:10px 12px;font-size:14px;line-height:20px}
+.enc{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;background:#FBFCFD}
+.enc .top{display:flex;gap:8px;align-items:center}
+.enc .top select{flex:1}
+.enc .rm{border:0;background:none;color:var(--red);font:500 13px Inter,sans-serif;cursor:pointer;padding:6px}
+.sigs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sig{border:1px dashed #C5CBD3;border-radius:12px;min-height:96px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px;cursor:pointer;text-align:center}
+.sig img{max-width:100%;height:50px;object-fit:contain}
+.sig b{font-size:13px;font-weight:600}
+.sig span{font-size:12px;color:var(--muted)}
+.sig.done{border-style:solid;border-color:var(--teal)}
+.modal{position:fixed;inset:0;background:rgba(23,35,58,.55);display:none;align-items:flex-end;justify-content:center;z-index:40}
+.modal.on{display:flex}
+.sheet{background:#fff;width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px}
+.padbox{position:relative;border:1px solid var(--line);border-radius:12px;background:#FBFCFD;touch-action:none}
+.padbox canvas{display:block;width:100%;height:200px;touch-action:none}
+.padbox .base{position:absolute;left:18px;right:18px;bottom:44px;border-bottom:1px solid #C5CBD3;pointer-events:none}
+.ok-big{width:84px;height:84px;border-radius:42px;background:var(--tint);display:flex;align-items:center;justify-content:center;margin:40px auto 0}
+.center{text-align:center}
+.small{font-size:12px;color:var(--muted)}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ACESSO -->
+<section class="screen" id="s-acesso">
+  <header class="top"><img src="sesi.png" alt="SESI"><span class="ttl">Ata de atendimento</span></header>
+  <div class="pinwrap">
+    <div class="center">
+      <h1 style="font-size:24px">Código de acesso</h1>
+      <p class="hint" style="margin-top:6px">Digite seu código pessoal de 6 dígitos.</p>
+    </div>
+    <div class="dots" id="dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    <p class="hint" id="pinMsg" style="min-height:20px;color:var(--red)"></p>
+    <div class="pad" id="pad"></div>
+  </div>
+</section>
+
+<!-- INÍCIO -->
+<section class="screen" id="s-inicio">
+  <header class="top"><img src="sesi.png" alt="SESI"><span class="ttl">CE-442 Limeira</span></header>
+  <main>
+    <div class="greet">
+      <h1 id="greet">Olá</h1>
+      <p><span id="cargo"></span> · <button class="trocar" id="btnTrocar">Trocar</button></p>
+    </div>
+    <div class="hero">
+      <h2 style="font-size:19px">Novo atendimento</h2>
+      <p>Preencha os dados, grave a reunião e receba a ata pronta para revisar e assinar.</p>
+      <button class="btn" id="btnNovo">Iniciar novo registro</button>
+    </div>
+    <div id="pendBox" class="hidden">
+      <p class="sect">Pendentes</p>
+      <div class="card pend" style="margin-top:12px;padding:4px 16px" id="pendList"></div>
+    </div>
+    <div id="recBox" class="hidden">
+      <p class="sect">Enviadas recentemente</p>
+      <div class="card" style="margin-top:12px;padding:4px 16px" id="recList"></div>
+    </div>
+    <div class="foot-note">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      Áudios são apagados após a transcrição.
+    </div>
+  </main>
+</section>
+
+<!-- NOVO -->
+<section class="screen" id="s-novo">
+  <header class="top"><button class="back" data-go="inicio">‹ Voltar</button><span class="ttl">Novo atendimento</span></header>
+  <main>
+    <div>
+      <label class="lbl" for="busca">Estudante</label>
+      <div id="estEscolha">
+        <input type="text" id="busca" placeholder="Digite o nome do estudante" autocomplete="off">
+        <div class="sug hidden" id="sug"></div>
+      </div>
+      <div class="chosen hidden" id="estEscolhido"><div><b id="estNome"></b><div class="small" id="estObs"></div></div><button id="estTrocar">Trocar</button></div>
+      <label class="check hidden" id="incluirBox" style="margin-top:10px"><input type="checkbox" id="incluir" checked><span>Incluir na relação do app (para os próximos atendimentos)</span></label>
+    </div>
+    <div>
+      <span class="lbl">Ano</span>
+      <select id="ano">
+        <option value="">Selecione</option>
+        <option>1º Ano</option><option>2º Ano</option><option>3º Ano</option><option>4º Ano</option><option>5º Ano</option>
+        <option>6º Ano</option><option>7º Ano</option><option>8º Ano</option><option>9º Ano</option>
+      </select>
+    </div>
+    <div id="etapaBox" class="hidden">
+      <span class="lbl">Etapa</span>
+      <div class="seg" id="etapa"><button data-v="Fundamental" class="on">Fundamental</button><button data-v="Ensino Médio">Ensino Médio</button></div>
+    </div>
+    <div>
+      <label class="lbl" for="resp">Responsável pelo atendimento</label>
+      <select id="resp"></select>
+    </div>
+    <div>
+      <label class="lbl" for="part">Participantes</label>
+      <input type="text" id="part" placeholder="Ex.: mãe (Ana), psicopedagoga Renata">
+      <p class="hint" style="margin-top:6px">Nomes e papéis ajudam a redigir a ata corretamente.</p>
+    </div>
+    <label class="check card" style="padding:14px"><input type="checkbox" id="consent"><span>Os participantes foram informados e concordaram com a gravação, usada apenas para redigir esta ata.</span></label>
+  </main>
+  <div class="footer"><button class="btn pri" id="btnIniciar" disabled>Iniciar registro</button></div>
+</section>
+
+<!-- GRAVANDO -->
+<section class="screen rec" id="s-grav">
+  <header class="top"><img src="sesi.png" alt="SESI"><span class="ttl">Ata de atendimento</span></header>
+  <main style="align-items:center;text-align:center;gap:22px">
+    <div class="circle" id="circ"><i class="c1"></i><i class="c2"></i><i class="c3"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#2E6E6B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></i></div>
+    <div>
+      <h1 style="font-size:24px;line-height:31px" id="gravTit">Registrando o atendimento</h1>
+      <p class="hint" style="font-size:15px;line-height:22px;max-width:310px;margin:8px auto 0">O áudio serve apenas para redigir a ata desta reunião e é apagado logo após a transcrição.</p>
+    </div>
+    <div class="timer" id="timer">00:00</div>
+    <div class="status" id="gravStatus"><span class="d"></span><span>Gravando</span></div>
+    <p class="small" id="gravInfo"></p>
+  </main>
+  <div class="footer">
+    <div class="row"><button class="btn sec" id="btnPausa">Pausar</button><button class="btn teal" id="btnConcluir">Concluir</button></div>
+  </div>
+</section>
+
+<!-- PROCESSANDO -->
+<section class="screen" id="s-proc">
+  <header class="top"><img src="sesi.png" alt="SESI"><span class="ttl">Ata de atendimento</span></header>
+  <main style="gap:26px">
+    <div><h1 style="font-size:24px">Preparando a ata</h1><p class="hint" style="margin-top:6px" id="procSub">Isso leva cerca de um minuto. Mantenha o app aberto.</p></div>
+    <div class="steps">
+      <div class="step" id="st1"><span class="ic"></span><span id="st1t">Transcrevendo o áudio</span></div>
+      <div class="step" id="st2"><span class="ic"></span><span>Apagando o áudio do aparelho</span></div>
+      <div class="step" id="st3"><span class="ic"></span><span>Redigindo a ata</span></div>
+    </div>
+    <div class="err hidden" id="procErr"></div>
+  </main>
+  <div class="footer hidden" id="procFoot">
+    <button class="btn pri" id="btnRetry">Tentar novamente</button>
+    <button class="btn ghost" data-go="inicio">Voltar ao início (fica salvo como pendente)</button>
+  </div>
+</section>
+
+<!-- REVISÃO -->
+<section class="screen" id="s-rev">
+  <header class="top"><button class="back" id="revVoltar">‹ Início</button><span class="ttl">Revisar ata</span></header>
+  <main>
+    <div class="card" style="display:flex;flex-direction:column;gap:4px">
+      <b id="revEst" style="font-size:17px"></b>
+      <span class="small" id="revMeta"></span>
+    </div>
+    <div id="revAlertas"></div>
+    <div><label class="lbl" for="rObj">Objetivos</label><textarea id="rObj" rows="3" style="min-height:80px"></textarea></div>
+    <div><label class="lbl" for="rReg">Registros e observações</label><textarea id="rReg" rows="10" style="min-height:220px"></textarea></div>
+    <div>
+      <span class="lbl">Encaminhamentos</span>
+      <div id="encList" style="display:flex;flex-direction:column;gap:10px"></div>
+      <button class="btn sec sm" id="encAdd" style="margin-top:10px">+ Adicionar encaminhamento</button>
+    </div>
+    <div class="row">
+      <div><label class="lbl" for="rPart">Participantes</label><input type="text" id="rPart"></div>
+    </div>
+    <div><label class="lbl" for="rNasc">Data de nascimento do estudante (opcional)</label><input type="date" id="rNasc"></div>
+    <div>
+      <span class="lbl">Assinaturas</span>
+      <div class="sigs" id="sigs"></div>
+      <p class="hint" style="margin-top:6px">Toque em um quadro para assinar com o dedo.</p>
+    </div>
+    <label class="check card" style="padding:14px"><input type="checkbox" id="fam"><span>Enviar cópia da ata à família por e-mail</span></label>
+    <div id="famBox" class="hidden" style="display:flex;flex-direction:column;gap:10px">
+      <div><label class="lbl" for="famEmail">E-mail da família</label><input type="email" id="famEmail" inputmode="email" autocomplete="off" placeholder="nome@exemplo.com"></div>
+      <div><label class="lbl" for="famEmail2">Confirme o e-mail</label><input type="email" id="famEmail2" inputmode="email" autocomplete="off"></div>
+      <p class="hint" id="famMsg"></p>
+    </div>
+    <div class="err hidden" id="revErr"></div>
+  </main>
+  <div class="footer"><button class="btn pri" id="btnEnviar">Enviar ata</button></div>
+</section>
+
+<!-- ENVIADO -->
+<section class="screen" id="s-ok">
+  <header class="top"><img src="sesi.png" alt="SESI"><span class="ttl">Ata de atendimento</span></header>
+  <main style="text-align:center;align-items:center">
+    <div class="ok-big"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2E6E6B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h1 style="font-size:24px">Ata enviada</h1>
+    <p class="hint" style="font-size:15px;line-height:22px;max-width:320px" id="okMsg">A ata foi gerada em Word, registrada no SharePoint e enviada à equipe gestora.</p>
+    <p class="small">Transcrição e dados temporários foram apagados do aparelho.</p>
+  </main>
+  <div class="footer"><button class="btn pri" data-go="inicio">Voltar ao início</button></div>
+</section>
+
+</div>
+
+<!-- modal assinatura -->
+<div class="modal" id="sigModal">
+  <div class="sheet">
+    <div style="display:flex;justify-content:space-between;align-items:center"><h2 style="font-size:18px">Assinatura</h2><button class="trocar" id="sigFechar">Fechar</button></div>
+    <div><label class="lbl" for="sigNome">Nome de quem assina</label><input type="text" id="sigNome" placeholder="Nome completo"></div>
+    <div class="padbox"><canvas id="sigCanvas"></canvas><div class="base"></div></div>
+    <div class="row"><button class="btn sec" id="sigLimpar">Limpar</button><button class="btn pri" id="sigOk">Confirmar</button></div>
+    <button class="btn ghost hidden" id="sigRemover">Remover esta assinatura</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+/* ===================== Configuração ===================== */
+const HOOK = {
+  acesso:      'https://hook.us2.make.com/ionzp6rhu0k8didm2orsh8i7dqlj6stq',
+  transcrever: 'https://hook.us2.make.com/pcaiwnnvp0c2limhiq7e837a1shqjcjc',
+  gerar:       'https://hook.us2.make.com/qm7ypk6x6vvqhlis8xhvowzz8uoyyzsn',
+  enviar:      'https://hook.us2.make.com/4mi4l4e70f1piif75myoes7304rbti71'
+};
+const SEGMENTO_MS = 5 * 60 * 1000;   // cada parte do áudio tem até 5 min (fica bem abaixo dos limites)
+const SALVAR_PARCIAL_MS = 15000;      // a cada 15 s o trecho em andamento é salvo no aparelho
+const RESPONSAVEIS = [
+  'Bruno Sérgio de Oliveira (Diretor de Escola)',
+  'Natalia Z. M. de Oliveira (Coordenadora Pedagógica)',
+  'Henrique Ribeiro Soares (Coordenador Pedagógico)',
+  'Tiago da Silva Pires (Coordenador Pedagógico)',
+  'Bruno Sérgio de Oliveira (DES) e Natalia Z. M. de Oliveira (CP)',
+  'Bruno Sérgio de Oliveira (DES) e Henrique Ribeiro Soares (CP)',
+  'Bruno Sérgio de Oliveira (DES) e Tiago da Silva Pires (CP)'
+];
+const PNG_VAZIO = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4XmNgYGBgAAAABQABGWkDzwAAAABJRU5ErkJggg==';
+
+/* ===================== Utilidades ===================== */
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const norm = s => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+const pad2 = n => String(n).padStart(2, '0');
+const hojeISO = () => { const d = new Date(); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; };
+const isoBR = iso => { const [y,m,d] = iso.split('-'); return `${d}/${m}/${y}`; };
+function toast(msg, ms = 2800) { const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('on'), ms); }
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === 's-' + id));
+  window.scrollTo(0, 0);
+  if (id === 'inicio') renderInicio();
+}
+document.addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (g) show(g.dataset.go); });
+function b64utf8(str) { const bytes = new TextEncoder().encode(str); let bin = ''; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(bin); }
+
+async function post(url, body, tentativas = 3) {
+  let ultimo;
+  for (let i = 0; i < tentativas; i++) {
+    try {
+      const r = await fetch(url, { method: 'POST', body });
+      const txt = await r.text();
+      if (r.status === 401) { const e = new Error('codigo_invalido'); e.status = 401; throw e; }
+      if (!r.ok) throw new Error('HTTP ' + r.status + (txt ? ': ' + txt.slice(0, 160) : ''));
+      return txt;
+    } catch (e) {
+      ultimo = e;
+      if (e.status === 401) throw e;
+      if (i < tentativas - 1) await sleep(1500 * (i + 1));
+    }
+  }
+  throw ultimo;
+}
+
+/* ===================== Armazenamento local (IndexedDB) ===================== */
+let _db;
+function db() {
+  if (_db) return Promise.resolve(_db);
+  return new Promise((res, rej) => {
+    const rq = indexedDB.open('ata-app', 1);
+    rq.onupgradeneeded = () => {
+      const d = rq.result;
+      d.createObjectStore('atend', { keyPath: 'id' });
+      const p = d.createObjectStore('partes', { keyPath: 'key' });
+      p.createIndex('atend', 'atend');
+    };
+    rq.onsuccess = () => { _db = rq.result; res(_db); };
+    rq.onerror = () => rej(rq.error);
+  });
+}
+async function tx(store, mode, fn) {
+  const d = await db();
+  return new Promise((res, rej) => {
+    const t = d.transaction(store, mode); const s = t.objectStore(store);
+    let out; Promise.resolve(fn(s)).then(v => out = v);
+    t.oncomplete = () => res(out); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
+  });
+}
+const reqP = rq => new Promise((res, rej) => { rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error); });
+const putAt = a => tx('atend', 'readwrite', s => s.put(a));
+const getAt = id => tx('atend', 'readonly', s => reqP(s.get(id)));
+const allAt = () => tx('atend', 'readonly', s => reqP(s.getAll()));
+const delAt = id => tx('atend', 'readwrite', s => s.delete(id));
+const putParte = p => tx('partes', 'readwrite', s => s.put(p));
+const partesDe = id => tx('partes', 'readonly', s => reqP(s.index('atend').getAll(id)));
+const delParte = key => tx('partes', 'readwrite', s => s.delete(key));
+
+/* ===================== Sessão / acesso ===================== */
+let sessao = null;
+try { sessao = JSON.parse(localStorage.getItem('ata.sessao') || 'null'); } catch (e) {}
+let pinDig = '';
+function montaPad() {
+  const p = $('pad'); p.innerHTML = '';
+  ['1','2','3','4','5','6','7','8','9','','0','⌫'].forEach(k => {
+    const b = document.createElement('button');
+    if (k === '') { b.style.visibility = 'hidden'; }
+    else if (k === '⌫') { b.className = 'x'; b.textContent = 'Apagar'; b.onclick = () => { pinDig = pinDig.slice(0, -1); dots(); }; }
+    else { b.textContent = k; b.onclick = () => digita(k); }
+    p.appendChild(b);
+  });
+}
+function dots() { [...$('dots').children].forEach((s, i) => s.classList.toggle('f', i < pinDig.length)); }
+async function digita(k) {
+  if (pinDig.length >= 6) return;
+  pinDig += k; dots(); $('pinMsg').textContent = '';
+  if (pinDig.length === 6) {
+    $('pinMsg').style.color = 'var(--muted)'; $('pinMsg').textContent = 'Verificando…';
+    try {
+      const fd = new URLSearchParams({ pin: pinDig, acao: 'login' });
+      const j = JSON.parse(await post(HOOK.acesso, fd, 2));
+      if (!j.ok) throw Object.assign(new Error('codigo_invalido'), { status: 401 });
+      const extras = String(j.extras || '').split('|').map(s => s.trim()).filter(Boolean);
+      sessao = { pin: pinDig, nome: j.nome, cargo: j.cargo, responsavel: j.responsavel };
+      localStorage.setItem('ata.sessao', JSON.stringify(sessao));
+      localStorage.setItem('ata.estudantes', JSON.stringify([...new Set([...(j.estudantes || []), ...extras])].sort((a, b) => a.localeCompare(b, 'pt-BR'))));
+      pinDig = ''; dots(); $('pinMsg').textContent = '';
+      show('inicio');
+    } catch (e) {
+      $('pinMsg').style.color = 'var(--red)';
+      $('pinMsg').textContent = e.status === 401 ? 'Código não reconhecido.' : 'Sem conexão. Tente novamente.';
+      $('dots').classList.add('shake'); setTimeout(() => $('dots').classList.remove('shake'), 400);
+      pinDig = ''; dots();
+    }
+  }
+}
+$('btnTrocar').onclick = () => { localStorage.removeItem('ata.sessao'); sessao = null; show('acesso'); };
+
+/* ===================== Início ===================== */
+function saudacao() { const h = new Date().getHours(); return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'; }
+async function renderInicio() {
+  if (!sessao) return;
+  const primeiro = (sessao.nome || '').split(' ')[0];
+  $('greet').textContent = `${saudacao()}, ${primeiro}`;
+  $('cargo').textContent = sessao.cargo || '';
+  const ats = (await allAt()).sort((a, b) => b.criado - a.criado);
+  const pend = ats.filter(a => a.status !== 'enviado');
+  $('pendBox').classList.toggle('hidden', !pend.length);
+  $('pendList').innerHTML = '';
+  for (const a of pend) {
+    const d = document.createElement('div'); d.className = 'item';
+    const est = { gravando: 'Gravação interrompida — áudio guardado', transcrever: 'Aguardando transcrição — áudio guardado', gerar: 'Aguardando a redação da ata', revisar: 'Ata pronta para revisar' }[a.status] || 'Pendente';
+    d.innerHTML = `<div class="t"><b></b><span></span></div><button class="btn sec sm">Continuar</button>`;
+    d.querySelector('b').textContent = a.meta.estudante;
+    d.querySelector('span').textContent = `${isoBR(a.meta.data_iso)} · ${est}`;
+    d.querySelector('button').onclick = () => retomar(a.id);
+    $('pendList').appendChild(d);
+  }
+  let rec = []; try { rec = JSON.parse(localStorage.getItem('ata.recentes') || '[]'); } catch (e) {}
+  $('recBox').classList.toggle('hidden', !rec.length);
+  $('recList').innerHTML = '';
+  rec.slice(0, 5).forEach(r => { const d = document.createElement('div'); d.className = 'item'; d.innerHTML = '<div class="t"><b></b><span></span></div>'; d.querySelector('b').textContent = r.estudante; d.querySelector('span').textContent = `${r.data} · enviada`; $('recList').appendChild(d); });
+}
+
+/* ===================== Novo atendimento ===================== */
+let novo = {};
+function listaEst() { try { return JSON.parse(localStorage.getItem('ata.estudantes') || '[]'); } catch (e) { return []; } }
+function abrirNovo() {
+  novo = { estudante: '', fora: false, etapa: 'Fundamental' };
+  $('busca').value = ''; $('sug').classList.add('hidden');
+  $('estEscolha').classList.remove('hidden'); $('estEscolhido').classList.add('hidden'); $('incluirBox').classList.add('hidden');
+  $('ano').value = ''; $('etapaBox').classList.add('hidden'); etapaSet('Fundamental');
+  $('resp').innerHTML = RESPONSAVEIS.map(r => `<option>${r}</option>`).join('');
+  if (sessao && RESPONSAVEIS.includes(sessao.responsavel)) $('resp').value = sessao.responsavel;
+  $('part').value = ''; $('consent').checked = false; valida();
+  show('novo');
+}
+$('btnNovo').onclick = abrirNovo;
+$('busca').addEventListener('input', () => {
+  const q = norm($('busca').value); const box = $('sug');
+  if (q.length < 2) { box.classList.add('hidden'); return; }
+  const termos = q.split(/\s+/);
+  const hits = listaEst().filter(n => { const nn = norm(n); return termos.every(t => nn.includes(t)); }).slice(0, 8);
+  box.innerHTML = '';
+  hits.forEach(n => { const b = document.createElement('button'); b.textContent = n; b.onclick = () => escolher(n, false); box.appendChild(b); });
+  const nome = $('busca').value.trim().replace(/\s+/g, ' ');
+  if (!hits.some(h => norm(h) === q)) {
+    const b = document.createElement('button'); b.className = 'add'; b.textContent = `+ Adicionar “${nome}” como novo estudante`;
+    b.onclick = () => escolher(nome.replace(/(^|\s)\S/g, c => c.toUpperCase()), true); box.appendChild(b);
+  }
+  box.classList.remove('hidden');
+});
+function escolher(nome, fora) {
+  novo.estudante = nome; novo.fora = fora;
+  $('estNome').textContent = nome; $('estObs').textContent = fora ? 'Novo — fora da relação' : '';
+  $('estEscolha').classList.add('hidden'); $('estEscolhido').classList.remove('hidden');
+  $('incluirBox').classList.toggle('hidden', !fora); valida();
+}
+$('estTrocar').onclick = () => { novo.estudante = ''; $('estEscolha').classList.remove('hidden'); $('estEscolhido').classList.add('hidden'); $('incluirBox').classList.add('hidden'); $('busca').focus(); valida(); };
+function etapaSet(v) { novo.etapa = v; [...$('etapa').children].forEach(b => b.classList.toggle('on', b.dataset.v === v)); }
+$('etapa').onclick = e => { const b = e.target.closest('button'); if (b && !b.disabled) etapaSet(b.dataset.v); };
+$('ano').onchange = () => {
+  const n = parseInt($('ano').value) || 0;
+  $('etapaBox').classList.toggle('hidden', !(n >= 1 && n <= 3));   // Médio só existe de 1º a 3º
+  if (!(n >= 1 && n <= 3)) etapaSet('Fundamental');
+  valida();
+};
+['part', 'consent', 'resp'].forEach(id => $(id).addEventListener('input', valida));
+$('consent').addEventListener('change', valida);
+function valida() { $('btnIniciar').disabled = !(novo.estudante && $('ano').value && $('consent').checked); }
+
+$('btnIniciar').onclick = async () => {
+  const meta = {
+    estudante: novo.estudante, fora: novo.fora, ano: $('ano').value, etapa: novo.etapa,
+    responsavel: $('resp').value, participantes: $('part').value.trim(),
+    data_iso: hojeISO(), registrado_por: sessao.nome
+  };
+  if (novo.fora && $('incluir').checked) {
+    const l = listaEst(); if (!l.includes(meta.estudante)) { l.push(meta.estudante); l.sort((a, b) => a.localeCompare(b, 'pt-BR')); localStorage.setItem('ata.estudantes', JSON.stringify(l)); }
+    post(HOOK.acesso, new URLSearchParams({ pin: sessao.pin, acao: 'add_estudante', estudante: meta.estudante }), 2).catch(() => {});
+  }
+  const at = { id: 'a' + Date.now(), criado: Date.now(), status: 'gravando', meta, duracaoMs: 0, transcricoes: {}, ata: null };
+  await putAt(at);
+  iniciarGravacao(at);
+};
+
+/* ===================== Gravação ===================== */
+let G = null; // estado da gravação
+function escolheMime() {
+  const c = ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/mp4;codecs=mp4a.40.2', 'audio/mp4', 'audio/webm'];
+  for (const m of c) if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) return m;
+  return '';
+}
+function extDe(m) { return m.includes('mp4') ? 'm4a' : m.includes('ogg') ? 'ogg' : 'webm'; }
+
+async function wakeLock() {
+  try { if ('wakeLock' in navigator && G && !G.lock) { G.lock = await navigator.wakeLock.request('screen'); G.lock.addEventListener('release', () => { if (G) G.lock = null; }); } } catch (e) {}
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && G && !G.parado) wakeLock(); });
+
+async function iniciarGravacao(at) {
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } });
+  } catch (e) {
+    toast('Não foi possível usar o microfone. Verifique a permissão do navegador.', 5000);
+    await delAt(at.id); show('novo'); return;
+  }
+  const mime = escolheMime();
+  const existentes = await partesDe(at.id);
+  G = { at, stream, mime, ext: extDe(mime || 'audio/webm'), idx: existentes.length, rec: null, pedacos: [], inicioSeg: 0, acumulado: at.duracaoMs || 0, rodando: false, pausado: false, parado: false, timers: [] };
+  $('s-grav').classList.remove('paused'); $('btnPausa').textContent = 'Pausar';
+  $('gravStatus').innerHTML = '<span class="d"></span><span>Gravando</span>';
+  $('gravInfo').textContent = '';
+  show('grav');
+  await wakeLock();
+  novoSegmento();
+  G.timers.push(setInterval(tick, 500));
+  G.timers.push(setInterval(salvarParcial, SALVAR_PARCIAL_MS));
+}
+function tempoMs() { return G.acumulado + (G.rodando ? Date.now() - G.inicioSeg : 0); }
+function tick() {
+  if (!G) return;
+  const s = Math.floor(tempoMs() / 1000);
+  $('timer').textContent = (s >= 3600 ? Math.floor(s / 3600) + ':' : '') + pad2(Math.floor(s / 60) % 60) + ':' + pad2(s % 60);
+  if (G.rodando && Date.now() - G.inicioSeg >= SEGMENTO_MS) trocarSegmento();
+}
+function novoSegmento() {
+  const opts = { audioBitsPerSecond: 24000 }; if (G.mime) opts.mimeType = G.mime;
+  let rec; try { rec = new MediaRecorder(G.stream, opts); } catch (e) { rec = new MediaRecorder(G.stream); }
+  G.rec = rec; G.pedacos = []; G.segKey = G.at.id + ':' + pad2(G.idx);
+  rec.ondataavailable = e => { if (e.data && e.data.size) G.pedacos.push(e.data); };
+  rec.start(1000);
+  G.inicioSeg = Date.now(); G.rodando = true;
+}
+function fecharSegmento() {
+  return new Promise(res => {
+    const rec = G.rec; if (!rec || rec.state === 'inactive') return res(null);
+    const key = G.segKey, idx = G.idx;
+    rec.onstop = async () => {
+      const blob = new Blob(G.pedacos, { type: rec.mimeType || G.mime || 'audio/webm' });
+      if (blob.size > 2000) await putParte({ key, atend: G.at.id, idx, blob, ext: G.ext, final: true });
+      else await delParte(key);
+      res(key);
+    };
+    if (G.rodando) { G.acumulado += Date.now() - G.inicioSeg; G.rodando = false; }
+    rec.stop();
+  });
+}
+async function trocarSegmento() {
+  if (G.trocando) return; G.trocando = true;
+  await fecharSegmento(); G.idx++;
+  G.at.duracaoMs = G.acumulado; await putAt(G.at);
+  if (!G.pausado && !G.parado) novoSegmento();
+  G.trocando = false;
+  transcreverEmSegundoPlano(G.at.id);   // adianta a transcrição das partes prontas
+}
+async function salvarParcial() {
+  if (!G || !G.pedacos.length) return;
+  const blob = new Blob(G.pedacos, { type: (G.rec && G.rec.mimeType) || G.mime || 'audio/webm' });
+  await putParte({ key: G.segKey, atend: G.at.id, idx: G.idx, blob, ext: G.ext, final: false });
+  G.at.duracaoMs = tempoMs(); await putAt(G.at);
+}
+$('btnPausa').onclick = async () => {
+  if (!G) return;
+  if (!G.pausado) {
+    G.pausado = true; await fecharSegmento(); G.idx++; G.at.duracaoMs = G.acumulado; await putAt(G.at);
+    $('s-grav').classList.add('paused'); $('btnPausa').textContent = 'Retomar';
+    $('gravStatus').innerHTML = '<span class="d" style="background:#8A94A3"></span><span style="color:#5A6475">Pausado</span>';
+  } else {
+    G.pausado = false; novoSegmento();
+    $('s-grav').classList.remove('paused'); $('btnPausa').textContent = 'Pausar';
+    $('gravStatus').innerHTML = '<span class="d"></span><span>Gravando</span>';
+  }
+};
+$('btnConcluir').onclick = async () => {
+  if (!G) return;
+  if (tempoMs() < 5000 && !confirm('A gravação tem menos de 5 segundos. Concluir mesmo assim?')) return;
+  G.parado = true;
+  if (!G.pausado) await fecharSegmento();
+  G.timers.forEach(clearInterval);
+  G.stream.getTracks().forEach(t => t.stop());
+  try { G.lock && G.lock.release(); } catch (e) {}
+  const at = G.at; at.duracaoMs = G.acumulado; at.status = 'transcrever'; await putAt(at);
+  G = null;
+  processar(at.id);
+};
+window.addEventListener('beforeunload', e => { if (G && !G.parado) { e.preventDefault(); e.returnValue = ''; } });
+
+/* ===================== Transcrição e ata ===================== */
+const emTranscricao = new Set();
+async function transcreverParte(atId, p) {
+  if (emTranscricao.has(p.key)) { while (emTranscricao.has(p.key)) await sleep(500); return; }
+  emTranscricao.add(p.key);
+  try {
+    const fd = new FormData();
+    fd.append('pin', sessao.pin); fd.append('parte', String(p.idx));
+    fd.append('audio', p.blob, `parte${pad2(p.idx)}.${p.ext}`);
+    const txt = await post(HOOK.transcrever, fd, 3);
+    const at = await getAt(atId);
+    at.transcricoes[p.idx] = (txt || '').trim();
+    await putAt(at);
+    await delParte(p.key);            // áudio apagado assim que a transcrição deu certo
+  } finally { emTranscricao.delete(p.key); }
+}
+async function transcreverEmSegundoPlano(atId) {
+  try { for (const p of await partesDe(atId)) if (p.final) await transcreverParte(atId, p); } catch (e) { /* tenta de novo ao concluir */ }
+}
+
+function passo(n, estado) { const el = $('st' + n); el.classList.remove('on', 'ok'); if (estado) el.classList.add(estado); }
+async function processar(atId) {
+  show('proc');
+  $('procErr').classList.add('hidden'); $('procFoot').classList.add('hidden');
+  [1, 2, 3].forEach(n => passo(n));
+  let at = await getAt(atId);
+  try {
+    if (at.status === 'transcrever' || at.status === 'gravando') {
+      at.status = 'transcrever'; await putAt(at);
+      passo(1, 'on');
+      const partes = (await partesDe(atId)).sort((a, b) => a.idx - b.idx);
+      let i = 0;
+      for (const p of partes) {
+        i++; $('st1t').textContent = partes.length > 1 ? `Transcrevendo o áudio (${i} de ${partes.length})` : 'Transcrevendo o áudio';
+        await transcreverParte(atId, p);
+      }
+      $('st1t').textContent = 'Transcrevendo o áudio';
+      passo(1, 'ok'); passo(2, 'on');
+      if ((await partesDe(atId)).length) throw new Error('Ainda há áudio sem transcrição.');
+      passo(2, 'ok');
+      at = await getAt(atId); at.status = 'gerar'; await putAt(at);
+    } else { passo(1, 'ok'); passo(2, 'ok'); }
+
+    if (at.status === 'gerar') {
+      passo(3, 'on');
+      const transcricao = Object.keys(at.transcricoes).sort((a, b) => a - b).map(k => at.transcricoes[k]).join('\n\n').trim();
+      if (transcricao.length < 20) throw new Error('A transcrição ficou vazia. Verifique se o microfone captou a conversa.');
+      const m = at.meta;
+      const fd = new URLSearchParams({ pin: sessao.pin, data: isoBR(m.data_iso), estudante: m.estudante, ano: m.ano, etapa: m.etapa, responsavel: m.responsavel, participantes: m.participantes || 'não informado', transcricao });
+      const txt = await post(HOOK.gerar, fd, 2);
+      at.ata = lerAta(txt);
+      at.status = 'revisar'; await putAt(at);
+      passo(3, 'ok');
+    }
+    abrirRevisao(atId);
+  } catch (e) {
+    [1, 2, 3].forEach(n => { if ($('st' + n).classList.contains('on')) passo(n); });
+    $('procErr').textContent = e.status === 401 ? 'Seu código de acesso não foi aceito. Toque em “Trocar” no início e entre de novo.' : 'Não foi possível concluir agora (' + (e.message || 'erro') + '). Nada foi perdido: o áudio continua guardado no aparelho.';
+    $('procErr').classList.remove('hidden'); $('procFoot').classList.remove('hidden');
+    $('btnRetry').onclick = () => processar(atId);
+  }
+}
+function lerAta(txt) {
+  let j; try { j = JSON.parse(txt); } catch (e) { const m = txt.match(/\{[\s\S]*\}/); j = m ? JSON.parse(m[0]) : {}; }
+  if (typeof j === 'string') j = JSON.parse(j);
+  if (j.result) j = typeof j.result === 'string' ? JSON.parse(j.result) : j.result;
+  return { objetivos: j.objetivos || '', registros: j.registros || '', encaminhamentos: Array.isArray(j.encaminhamentos) ? j.encaminhamentos : [], alertas: Array.isArray(j.alertas) ? j.alertas : [] };
+}
+async function retomar(id) {
+  const at = await getAt(id); if (!at) return;
+  if (at.status === 'revisar') return abrirRevisao(id);
+  if (at.status === 'gravando') {
+    // a gravação foi interrompida (app fechado): o que foi salvo vira parte final
+    for (const p of await partesDe(id)) if (!p.final) { p.final = true; await putParte(p); }
+    at.status = 'transcrever'; await putAt(at);
+  }
+  processar(id);
+}
+
+/* ===================== Revisão ===================== */
+let REV = null; // atendimento em revisão
+const PARTES = ['Escola', 'Família', 'Estudante', 'Profissional externo'];
+async function abrirRevisao(id) {
+  const at = await getAt(id); REV = at;
+  const m = at.meta, a = at.ata;
+  $('revEst').textContent = m.estudante;
+  $('revMeta').textContent = `${isoBR(m.data_iso)} · ${m.ano}${m.etapa === 'Ensino Médio' ? ' do Ensino Médio' : ''} · ${m.responsavel} · ${Math.max(1, Math.round((at.duracaoMs || 0) / 60000))} min`;
+  $('revAlertas').innerHTML = '';
+  (a.alertas || []).forEach(t => { const d = document.createElement('div'); d.className = 'alert'; d.textContent = '⚠ ' + t; $('revAlertas').appendChild(d); });
+  $('rObj').value = a.objetivos; $('rReg').value = a.registros;
+  $('rPart').value = m.participantes || '';
+  $('rNasc').value = at.rev?.nasc || '';
+  $('encList').innerHTML = ''; (a.encaminhamentos.length ? a.encaminhamentos : []).forEach(addEnc);
+  at.assin = at.assin || [{ nome: primeiroResp(m.responsavel), img: '' }, { nome: '', img: '' }, { nome: '', img: '' }, { nome: '', img: '' }];
+  renderSigs();
+  $('fam').checked = !!at.rev?.fam; $('famEmail').value = at.rev?.email || ''; $('famEmail2').value = at.rev?.email || '';
+  famToggle(); $('revErr').classList.add('hidden');
+  show('rev');
+}
+function primeiroResp(r) { return (r || '').replace(/\s*\(.*?\)\s*/g, ' ').split(' e ')[0].trim(); }
+function addEnc(e = {}) {
+  const box = document.createElement('div'); box.className = 'enc';
+  box.innerHTML = `<div class="top"><select class="e-parte">${PARTES.map(p => `<option>${p}</option>`).join('')}</select><button class="rm" type="button">Remover</button></div>
+  <textarea class="e-acao" rows="2" style="min-height:60px" placeholder="Ação combinada"></textarea>
+  <div class="row"><input type="text" class="e-resp" placeholder="Responsável"><input type="text" class="e-prazo" placeholder="Prazo"></div>`;
+  const parte = PARTES.find(p => norm(p) === norm(e.parte)) || 'Escola';
+  box.querySelector('.e-parte').value = parte;
+  box.querySelector('.e-acao').value = e.acao || '';
+  box.querySelector('.e-resp').value = e.responsavel || '';
+  box.querySelector('.e-prazo').value = (e.prazo && !/n[aã]o (definido|informado)/i.test(e.prazo)) ? e.prazo : '';
+  box.querySelector('.rm').onclick = () => box.remove();
+  $('encList').appendChild(box);
+}
+$('encAdd').onclick = () => addEnc();
+function lerEncs() {
+  return [...$('encList').children].map(b => ({ parte: b.querySelector('.e-parte').value, acao: b.querySelector('.e-acao').value.trim(), responsavel: b.querySelector('.e-resp').value.trim(), prazo: b.querySelector('.e-prazo').value.trim() })).filter(e => e.acao);
+}
+function encTexto(encs) {
+  if (!encs.length) return 'Não houve encaminhamentos.';
+  const grupos = {};
+  encs.forEach(e => { (grupos[e.parte] = grupos[e.parte] || []).push(e); });
+  return Object.keys(grupos).map(p => grupos[p].map(e => {
+    const extra = [e.responsavel, e.prazo].filter(Boolean).join(', ');
+    return `${p}: ${e.acao}${extra ? ` (${extra})` : ''}`;
+  }).join('\n')).join('\n');
+}
+async function salvarRascunho() {
+  if (!REV) return;
+  REV.ata.objetivos = $('rObj').value; REV.ata.registros = $('rReg').value; REV.ata.encaminhamentos = lerEncs();
+  REV.meta.participantes = $('rPart').value.trim();
+  REV.rev = { nasc: $('rNasc').value, fam: $('fam').checked, email: $('famEmail').value.trim() };
+  await putAt(REV);
+}
+$('revVoltar').onclick = async () => { await salvarRascunho(); show('inicio'); };
+['rObj', 'rReg', 'rPart', 'rNasc', 'famEmail'].forEach(id => $(id).addEventListener('change', salvarRascunho));
+
+function famToggle() {
+  $('famBox').classList.toggle('hidden', !$('fam').checked);
+  const a = $('famEmail').value.trim(), b = $('famEmail2').value.trim();
+  const okFmt = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(a);
+  $('famMsg').style.color = 'var(--muted)';
+  $('famMsg').textContent = !a ? 'A família recebe a ata em Word, enviada pelo e-mail da escola.' : !okFmt ? 'Confira o formato do e-mail.' : b && a.toLowerCase() !== b.toLowerCase() ? 'Os e-mails não conferem.' : b ? '✓ E-mails conferem.' : 'Digite o e-mail novamente para confirmar.';
+  if (a && (!okFmt || (b && a.toLowerCase() !== b.toLowerCase()))) $('famMsg').style.color = 'var(--red)';
+}
+['fam', 'famEmail', 'famEmail2'].forEach(id => $(id).addEventListener('input', famToggle));
+$('fam').addEventListener('change', () => { famToggle(); salvarRascunho(); });
+
+/* assinaturas */
+function renderSigs() {
+  const box = $('sigs'); box.innerHTML = '';
+  REV.assin.forEach((s, i) => {
+    const d = document.createElement('div'); d.className = 'sig' + (s.img ? ' done' : '');
+    if (s.img) d.innerHTML = `<img alt=""><b></b>`, d.querySelector('img').src = 'data:image/png;base64,' + s.img, d.querySelector('b').textContent = s.nome || 'Assinado';
+    else d.innerHTML = `<b>Assinar</b><span></span>`, d.querySelector('span').textContent = s.nome || `Participante ${i + 1}`;
+    d.onclick = () => abrirSig(i);
+    box.appendChild(d);
+  });
+}
+let sigIdx = 0, sigTem = false;
+const cv = $('sigCanvas'), cx = cv.getContext('2d');
+function abrirSig(i) {
+  sigIdx = i; $('sigModal').classList.add('on');
+  $('sigNome').value = REV.assin[i].nome || '';
+  $('sigRemover').classList.toggle('hidden', !REV.assin[i].img);
+  requestAnimationFrame(() => {
+    const r = cv.getBoundingClientRect(), dpr = Math.max(1, window.devicePixelRatio || 1);
+    cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+    cx.setTransform(dpr, 0, 0, dpr, 0, 0); cx.clearRect(0, 0, r.width, r.height);
+    cx.lineWidth = 2.4; cx.lineCap = 'round'; cx.lineJoin = 'round'; cx.strokeStyle = '#17233A';
+    sigTem = false;
+  });
+}
+(function () {
+  let des = false, ult = null;
+  const pos = e => { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+  cv.addEventListener('pointerdown', e => { des = true; ult = pos(e); cv.setPointerCapture(e.pointerId); cx.beginPath(); cx.arc(ult.x, ult.y, 1.1, 0, 7); cx.fillStyle = '#17233A'; cx.fill(); sigTem = true; });
+  cv.addEventListener('pointermove', e => { if (!des) return; const p = pos(e); cx.beginPath(); cx.moveTo(ult.x, ult.y); cx.lineTo(p.x, p.y); cx.stroke(); ult = p; sigTem = true; });
+  const fim = () => { des = false; };
+  cv.addEventListener('pointerup', fim); cv.addEventListener('pointercancel', fim);
+})();
+$('sigLimpar').onclick = () => { cx.clearRect(0, 0, cv.width, cv.height); sigTem = false; };
+$('sigFechar').onclick = () => $('sigModal').classList.remove('on');
+$('sigRemover').onclick = async () => { REV.assin[sigIdx] = { nome: $('sigNome').value.trim(), img: '' }; await putAt(REV); renderSigs(); $('sigModal').classList.remove('on'); };
+$('sigOk').onclick = async () => {
+  const nome = $('sigNome').value.trim();
+  if (!sigTem) { toast('Desenhe a assinatura no quadro.'); return; }
+  if (!nome) { toast('Informe o nome de quem assina.'); $('sigNome').focus(); return; }
+  REV.assin[sigIdx] = { nome, img: recortarAssinatura() };
+  await putAt(REV); renderSigs(); $('sigModal').classList.remove('on');
+};
+function recortarAssinatura() {
+  // recorta as bordas vazias e reduz para no máx. 600 px de largura
+  const w = cv.width, h = cv.height, d = cx.getImageData(0, 0, w, h).data;
+  let x0 = w, y0 = h, x1 = 0, y1 = 0;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (d[(y * w + x) * 4 + 3] > 10) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  const m = 8; x0 = Math.max(0, x0 - m); y0 = Math.max(0, y0 - m); x1 = Math.min(w - 1, x1 + m); y1 = Math.min(h - 1, y1 + m);
+  const cw = x1 - x0 + 1, ch = y1 - y0 + 1, esc = Math.min(1, 600 / cw);
+  const o = document.createElement('canvas'); o.width = Math.round(cw * esc); o.height = Math.round(ch * esc);
+  o.getContext('2d').drawImage(cv, x0, y0, cw, ch, 0, 0, o.width, o.height);
+  return o.toDataURL('image/png').split(',')[1];
+}
+
+/* envio */
+$('btnEnviar').onclick = async () => {
+  await salvarRascunho();
+  const err = $('revErr'); err.classList.add('hidden');
+  const falha = msg => { err.textContent = msg; err.classList.remove('hidden'); err.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+  if (!$('rObj').value.trim() || !$('rReg').value.trim()) return falha('Preencha os objetivos e os registros.');
+  let email = '';
+  if ($('fam').checked) {
+    email = $('famEmail').value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return falha('Confira o e-mail da família.');
+    if (email.toLowerCase() !== $('famEmail2').value.trim().toLowerCase()) return falha('Os e-mails da família não conferem.');
+  }
+  const m = REV.meta, encs = lerEncs();
+  const dados = {
+    versao: 1, registrado_por: sessao.nome,
+    data: isoBR(m.data_iso), data_iso: m.data_iso, re67c7e67f3bf436e84bfc6a6f75b0a2f: m.data_iso,
+    estudante: m.estudante, estudante_fora_relacao: !!m.fora, ano: m.ano, etapa: m.etapa,
+    nascimento: $('rNasc').value ? isoBR($('rNasc').value) : '',
+    responsavel: m.responsavel, participantes: $('rPart').value.trim(),
+    objetivos: $('rObj').value.trim(), registros: $('rReg').value.trim(),
+    encaminhamentos: encTexto(encs), encaminhamentos_lista: encs,
+    enviar_familia: !!email, email_familia: email,
+    duracao_min: Math.max(1, Math.round((REV.duracaoMs || 0) / 60000))
+  };
+  REV.assin.forEach((s, i) => { dados[`assin${i + 1}_nome`] = s.img ? s.nome : ''; dados[`assin${i + 1}_img`] = s.img || PNG_VAZIO; });
+  const b = $('btnEnviar'); b.disabled = true; b.textContent = 'Enviando…';
+  try {
+    const fd = new URLSearchParams({ pin: sessao.pin, estudante: m.estudante, data: dados.data, dados: b64utf8(JSON.stringify(dados)) });
+    const txt = await post(HOOK.enviar, fd, 3);
+    let ok = true; try { ok = JSON.parse(txt).ok !== false; } catch (e) {}
+    if (!ok) throw new Error('resposta inesperada');
+    let rec = []; try { rec = JSON.parse(localStorage.getItem('ata.recentes') || '[]'); } catch (e) {}
+    rec.unshift({ estudante: m.estudante, data: dados.data }); localStorage.setItem('ata.recentes', JSON.stringify(rec.slice(0, 10)));
+    for (const p of await partesDe(REV.id)) await delParte(p.key);
+    await delAt(REV.id); REV = null;
+    $('okMsg').textContent = email ? 'A ata foi enviada à equipe gestora e uma cópia segue para a família. Em alguns minutos ela chega por e-mail e fica registrada no SharePoint.' : 'A ata foi enviada à equipe gestora. Em alguns minutos ela chega por e-mail e fica registrada no SharePoint.';
+    show('ok');
+  } catch (e) {
+    falha(e.status === 401 ? 'Seu código de acesso não foi aceito. Volte ao início, toque em “Trocar” e entre de novo — a ata fica salva.' : 'Não foi possível enviar agora. A ata continua salva no aparelho; tente de novo em instantes.');
+  } finally { b.disabled = false; b.textContent = 'Enviar ata'; }
+};
+
+/* ===================== Partida ===================== */
+montaPad();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+show(sessao ? 'inicio' : 'acesso');
+</script>
+</body>
+</html>
