@@ -649,21 +649,30 @@ window.addEventListener('beforeunload', e => { if (G && !G.parado) { e.preventDe
 /* ===================== Transcrição e ata ===================== */
 const emTranscricao = new Set();
 async function transcreverParte(atId, p) {
+  if (p.transcrita) return;
   if (emTranscricao.has(p.key)) { while (emTranscricao.has(p.key)) await sleep(500); return; }
   emTranscricao.add(p.key);
   try {
-    const fd = new FormData();
-    fd.append('pin', sessao.pin); fd.append('parte', String(p.idx));
-    fd.append('audio', p.blob, `parte${pad2(p.idx)}.${p.ext}`);
-    const txt = await post(HOOK.transcrever, fd, 3);
-    const at = await getAt(atId);
-    at.transcricoes[p.idx] = (txt || '').trim();
-    await putAt(at);
-    await delParte(p.key);            // áudio apagado assim que a transcrição deu certo
+    let txt = '';
+    if (p.blob && p.blob.size > 2000) {
+      const fd = new FormData();
+      fd.append('pin', sessao.pin); fd.append('parte', String(p.idx));
+      fd.append('audio', p.blob, `parte${pad2(p.idx)}.${p.ext}`);
+      txt = await post(HOOK.transcrever, fd, 3);
+    }
+    // a transcrição fica guardada na própria parte; o áudio é apagado (blob removido) logo em seguida.
+    // (Antes ela era gravada no registro do atendimento, que a gravação sobrescrevia: as partes iniciais se perdiam.)
+    await putParte({ key: p.key, atend: p.atend, idx: p.idx, ext: p.ext, final: true, transcrita: true, texto: (txt || '').trim(), blob: null });
   } finally { emTranscricao.delete(p.key); }
 }
 async function transcreverEmSegundoPlano(atId) {
-  try { for (const p of await partesDe(atId)) if (p.final) await transcreverParte(atId, p); } catch (e) { /* tenta de novo ao concluir */ }
+  try { for (const p of await partesDe(atId)) if (p.final && !p.transcrita) await transcreverParte(atId, p); } catch (e) { /* tenta de novo ao concluir */ }
+}
+async function transcricaoCompleta(atId, at) {
+  const partes = (await partesDe(atId)).sort((a, b) => a.idx - b.idx);
+  const antigas = at && at.transcricoes ? Object.keys(at.transcricoes).sort((a, b) => a - b).map(k => at.transcricoes[k]) : [];
+  const textos = partes.length ? partes.map(p => p.texto || '') : antigas;
+  return textos.filter(Boolean).map((t, i, arr) => arr.length > 1 ? `[Parte ${i + 1} de ${arr.length}]\n${t}` : t).join('\n\n').trim();
 }
 
 function passo(n, estado) { const el = $('st' + n); el.classList.remove('on', 'ok'); if (estado) el.classList.add(estado); }
@@ -676,7 +685,7 @@ async function processar(atId) {
     if (at.status === 'transcrever' || at.status === 'gravando') {
       at.status = 'transcrever'; await putAt(at);
       passo(1, 'on');
-      const partes = (await partesDe(atId)).sort((a, b) => a.idx - b.idx);
+      const partes = (await partesDe(atId)).filter(p => !p.transcrita).sort((a, b) => a.idx - b.idx);
       let i = 0;
       for (const p of partes) {
         i++; $('st1t').textContent = partes.length > 1 ? `Transcrevendo o áudio (${i} de ${partes.length})` : 'Transcrevendo o áudio';
@@ -684,14 +693,14 @@ async function processar(atId) {
       }
       $('st1t').textContent = 'Transcrevendo o áudio';
       passo(1, 'ok'); passo(2, 'on');
-      if ((await partesDe(atId)).length) throw new Error('Ainda há áudio sem transcrição.');
+      if ((await partesDe(atId)).some(p => !p.transcrita || p.blob)) throw new Error('Ainda há áudio sem transcrição.');
       passo(2, 'ok');
       at = await getAt(atId); at.status = 'gerar'; await putAt(at);
     } else { passo(1, 'ok'); passo(2, 'ok'); }
 
     if (at.status === 'gerar') {
       passo(3, 'on');
-      const transcricao = Object.keys(at.transcricoes).sort((a, b) => a - b).map(k => at.transcricoes[k]).join('\n\n').trim();
+      const transcricao = await transcricaoCompleta(atId, at);
       if (transcricao.length < 20) throw new Error('A transcrição ficou vazia. Verifique se o microfone captou a conversa.');
       const m = at.meta;
       const fd = new URLSearchParams({ pin: sessao.pin, data: isoBR(m.data_iso), estudante: m.estudante, ano: m.ano, etapa: m.etapa, responsavel: m.responsavel, participantes: m.participantes || 'não informado', transcricao });
@@ -719,7 +728,7 @@ async function retomar(id) {
   if (at.status === 'revisar') return abrirRevisao(id);
   if (at.status === 'gravando') {
     // a gravação foi interrompida (app fechado): o que foi salvo vira parte final
-    for (const p of await partesDe(id)) if (!p.final) { p.final = true; await putParte(p); }
+    for (const p of await partesDe(id)) if (!p.final && !p.transcrita) { p.final = true; await putParte(p); }
     at.status = 'transcrever'; await putAt(at);
   }
   processar(id);
@@ -766,12 +775,11 @@ function lerEncs() {
 }
 function encTexto(encs) {
   if (!encs.length) return 'Não houve encaminhamentos.';
-  const grupos = {};
-  encs.forEach(e => { (grupos[e.parte] = grupos[e.parte] || []).push(e); });
-  return Object.keys(grupos).map(p => grupos[p].map(e => {
-    const extra = [e.responsavel, e.prazo].filter(Boolean).join(', ');
-    return `${p}: ${e.acao}${extra ? ` (${extra})` : ''}`;
-  }).join('\n')).join('\n');
+  return encs.map(e => {
+    const quem = e.responsavel || e.parte;
+    const acao = e.acao.charAt(0).toLowerCase() + e.acao.slice(1);
+    return `${quem} – ${acao}${e.prazo ? ` (prazo: ${e.prazo})` : ''}`.replace(/\.?$/, '.');
+  }).join('\n');
 }
 async function salvarRascunho() {
   if (!REV) return;
