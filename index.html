@@ -775,10 +775,12 @@ function lerEncs() {
 }
 function encTexto(encs) {
   if (!encs.length) return 'Não houve encaminhamentos.';
+  const limpa = t => (t || '').trim().replace(/[.;\s]+$/, '');
+  const minus = t => t ? t.charAt(0).toLowerCase() + t.slice(1) : t;
   return encs.map(e => {
-    const quem = e.responsavel || e.parte;
-    const acao = e.acao.charAt(0).toLowerCase() + e.acao.slice(1);
-    return `${quem} – ${acao}${e.prazo ? ` (prazo: ${e.prazo})` : ''}`.replace(/\.?$/, '.');
+    const quem = limpa(e.responsavel) || e.parte;
+    const prazo = minus(limpa(e.prazo));
+    return `${quem} – ${minus(limpa(e.acao))}${prazo ? ` (${prazo})` : ''}.`;
   }).join('\n');
 }
 async function salvarRascunho() {

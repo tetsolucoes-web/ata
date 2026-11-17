@@ -1,5 +1,5 @@
 // Service worker: deixa o app abrir mesmo sem internet (os dados continuam no aparelho).
-const CACHE = 'ata-v3';
+const CACHE = 'ata-v4';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './sesi.png', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
